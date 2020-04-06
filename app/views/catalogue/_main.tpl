@@ -39,6 +39,7 @@
   <!--
   ----- CATALOGUE -----
   -->
-  {include file="catalogue/catalogue.tpl"}
+  <div class="content"></div>
+  {* {include file="catalogue/catalogue.tpl"} *}
 
 {/block}

@@ -27,5 +27,9 @@ Utils::addRoute('changeStatus',     'LibrarianCtrl',    Roles::getLibrarianRole(
 
 Utils::addRoute('mail',             'ProfileCtrl',      Roles::getUserRole());
 
+// AJAX:
+Utils::addRoute('ajaxSearchVolumes', 'CatalogueCtrl',   Roles::getUserRole());
+Utils::addRoute('ajaxGetStuff', 'CatalogueCtrl',   Roles::getUserRole());
+
 // Utils::addRoute('add', 'CatalogueCtrl', ['admin']);
 // Utils::addRoute('add_volume', 'CatalogueCtrl', ['admin']);

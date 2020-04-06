@@ -7,18 +7,15 @@ use core\App;
 class CatalogueDAO {
     
     // Zwraca tablice woluminow, obarczona kryteriami wyszukiwania
-    public static function getVolumes($form)
+    public static function getVolumes($form, $pageNumber, $amount)
     {
         // Utworzenie zmiennej tablicowej dla klauzuli WHERE
-        $where_clause = array();
+        $where_clause = self::getWhere($form);
         
-        // Wskazanie parametrów do wyszukiwania w klauzuli WHERE
-        if($form->author) $where_clause['volume.author[~]'] = $form->author;
-        if($form->title) $where_clause['volume.title[~]'] = $form->title;
-        if($form->year) $where_clause['volume.year_publication'] = $form->year;
-//         if($form->onlyAvailable) $where_clause['volume.status'] = 'available';
+        $firstVolume = ($pageNumber - 1) * $amount;
 
-        $where_clause["ORDER"] = ["id" => "ASC"];
+        $where_clause['ORDER'] = ['id'=> 'ASC'];
+        $where_clause['LIMIT'] = [$firstVolume, $amount];
         
         return App::getDB()->select('volume',[
             'volume.id',
@@ -26,8 +23,34 @@ class CatalogueDAO {
             'title', 
             'year_publication',
         ],
-            $where_clause
+            $where_clause,
         );
+    }
+    
+    // Returns `where clause` as an array
+    public static function getWhere($form)
+    {
+        $where_clause = array();
+        
+        // Wskazanie parametrów do wyszukiwania w klauzuli WHERE
+        if($form->author) $where_clause['volume.author[~]'] = $form->author;
+        if($form->title) $where_clause['volume.title[~]'] = $form->title;
+        if($form->year) $where_clause['volume.year_publication'] = $form->year;
+//         if($form->onlyAvailable) $where_clause['volume.status'] = 'available';
+        
+        return $where_clause;
+    }
+    
+    // Returns number of volumes
+    public static function countVolumes($form)
+    {
+        return App::getDB()->count('volume', self::getWhere($form));
+    }
+    
+    // Return number of pages of current request
+    public static function countPages($form, $amount = 5)
+    {
+        return ceil(self::countVolumes($form)/$amount);
     }
     
     // Returns volumes 
@@ -45,9 +68,9 @@ class CatalogueDAO {
     }
     
     // Returns volumes with reservation status
-    public static function getVolumesExtra($form)
+    public static function getVolumesExtra($form, $pageNumber = 1, $amount = 5)
     {
-        $volumes = self::getVolumes($form);
+        $volumes = self::getVolumes($form, $pageNumber, $amount);
         $reservedVolumes = self::getActiveReservations();
         
         // Creates temporary array with reserved id's as keys and reservation deadlines as values

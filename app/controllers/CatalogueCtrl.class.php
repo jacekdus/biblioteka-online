@@ -33,6 +33,27 @@ class CatalogueCtrl {
         $this->generateView();
     }
     
+    public function action_ajaxSearchVolumes()
+    {
+        $pageNumber = ParamUtils::getFromCleanURL(1);
+        
+        // Pobranie danych z formularza
+        $v = new Validator();
+        $this->searchForm->author = $v->validateFromGet('author');
+        $this->searchForm->title = $v->validateFromGet('title');
+        $this->searchForm->year = $v->validateFromGet('year');
+        
+        // Wyszukanie woluminów w bazie razem z danymi dotyczącymi rezerwacji woluminów
+        $this->volumes = CatalogueDAO::getVolumesExtra($this->searchForm, $pageNumber);
+
+        App::getSmarty()->assign('amount', CatalogueDAO::countVolumes($this->searchForm));
+        App::getSmarty()->assign('pages', CatalogueDAO::countPages($this->searchForm));
+        App::getSmarty()->assign('pageNumber', $pageNumber);
+        App::getSmarty()->assign('searchForm', $this->searchForm);
+        App::getSmarty()->assign('volumes', $this->volumes);
+        App::getSmarty()->display('catalogue/catalogue.tpl');
+    }
+    
     private function getVolumes()
     {
         // Pobranie danych z formularza

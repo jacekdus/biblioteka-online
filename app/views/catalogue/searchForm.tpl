@@ -5,14 +5,14 @@
     </div>
     <div class="card-body">
 
-        <form action="{$conf->action_root}searchVolumes" method="post">
+        <form name="search" autocomplete="off">
             <div class="row form-group">
                 {* AUTHOR *}
                 <div class="col">
-                    <input name="author" type="text" class="form-control" id="inputAuthor" placeholder="Autor" 
+                    <input name="author" type="text" class="form-control author-input" id="inputAuthor" placeholder="Autor" 
                     value="{$searchForm->author}">
                 </div>
-
+                
                 {* TITLE *}
                 <div class="col">
                     <input name="title" type="text" class="form-control" id="inputTitle" placeholder="Tytuł" 
@@ -35,9 +35,7 @@
                 </div>
                 {* SUBMIT BUTTON *}
                 <div class="col-6">
-                    <div class="">
-                        <button type="submit" class="btn btn-warning btn-block">Wyszukaj</button>
-                    </div>
+                    <button type="button" class="btn btn-warning btn-block" id="searchBtn">Wyszukaj</button>
                 </div>
             </div>
 
