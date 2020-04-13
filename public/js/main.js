@@ -20,7 +20,7 @@ async function getVolumes(page = 1) {
   const response = await fetch(`http://localhost/LibraryWebApp/public/ajaxSearchVolumes/${page}?author=${form.author}&title=${form.title}&year=${form.year}`);
   const volumes =  await response.text();
   target.innerHTML = volumes;
-
+  
   // Set pagination buttons behaviors
   const paginationBtns = document.getElementsByName('paginationButton')
   paginationBtns.forEach(btn => {

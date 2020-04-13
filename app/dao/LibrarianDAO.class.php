@@ -10,12 +10,13 @@ class LibrarianDAO
         return App::getDB()->select('reservation', [
             '[>]volume' => ['id_volume' => 'id'],
             '[>]reservation_status' => ['id_status' => 'id'],
-            '[>]user' => ['id_user' => 'id']
+            '[>]user' => ['id_user' => 'id'],
+            '[>]author' => ['volume.id_author' => 'id']
         ],[
             'reservation.id',
             'reservation_status.id(reservation_status_id)',
             'id_volume',
-            'author',
+            'author' => App::getDB()->raw("CONCAT(<author.first_name>, ' ', <author.last_name>)"),
             'title',
             'login',
             'start_date',

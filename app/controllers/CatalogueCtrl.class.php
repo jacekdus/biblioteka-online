@@ -45,7 +45,7 @@ class CatalogueCtrl {
         
         // Wyszukanie woluminów w bazie razem z danymi dotyczącymi rezerwacji woluminów
         $this->volumes = CatalogueDAO::getVolumesExtra($this->searchForm, $pageNumber);
-
+        
         App::getSmarty()->assign('amount', CatalogueDAO::countVolumes($this->searchForm));
         App::getSmarty()->assign('pages', CatalogueDAO::countPages($this->searchForm));
         App::getSmarty()->assign('pageNumber', $pageNumber);

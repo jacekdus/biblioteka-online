@@ -10,11 +10,12 @@ class ProfileDAO
     {
         return App::getDB()->select('reservation', [
             '[>]volume' => ['id_volume' => 'id'],
-            '[>]reservation_status' => ['id_status' => 'id']
+            '[>]reservation_status' => ['id_status' => 'id'],
+            '[>]author' => ['volume.id_author' => 'id']
         ],[
             'reservation.id',
             'id_volume',
-            'author',
+            'author' => App::getDB()->raw("CONCAT(<first_name>, ' ', <last_name>)"),
             'title',
             'start_date',
             'end_date',
@@ -30,10 +31,11 @@ class ProfileDAO
     {
         return App::getDB()->select('reservation', [
             '[>]volume' => ['id_volume' => 'id'],
-            '[>]reservation_status' => ['id_status' => 'id']
+            '[>]reservation_status' => ['id_status' => 'id'],
+            '[>]author' => ['volume.id_author' => 'id']
         ],[
             'id_volume',
-            'author',
+            'author' => App::getDB()->raw("CONCAT(<first_name>, ' ', <last_name>)"),
             'title',
             'start_date',
             'end_date',

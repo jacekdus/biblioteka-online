@@ -7,50 +7,84 @@ use core\App;
 class CatalogueDAO {
     
     // Zwraca tablice woluminow, obarczona kryteriami wyszukiwania
-    public static function getVolumes($form, $pageNumber, $amount)
+    public static function getVolumes($form, $pageNumber)
     {
         // Utworzenie zmiennej tablicowej dla klauzuli WHERE
-        $where_clause = self::getWhere($form);
+        $where = self::getWhere($form);
         
-        $firstVolume = ($pageNumber - 1) * $amount;
-
-        $where_clause['ORDER'] = ['id'=> 'ASC'];
-        $where_clause['LIMIT'] = [$firstVolume, $amount];
+        $where_clause = $where[0];
+        $where_clause .= " LIMIT :amount OFFSET :offset";
         
-        return App::getDB()->select('volume',[
+        $where_params = $where[1];
+        $where_params[':amount'] = $form->amount;
+        $where_params[':offset'] = ($pageNumber - 1) * $form->amount;
+        
+        return App::getDB()->select('volume', [
+            '[>]author' => ['id_author' => 'id']
+        ],[
             'volume.id',
-            'author', 
+            'author' => App::getDB()->raw("CONCAT(<first_name>, ' ', <last_name>)"),
             'title', 
             'year_publication',
         ],
-            $where_clause,
+            App::getDB()->raw($where_clause, $where_params)
         );
     }
     
     // Returns `where clause` as an array
     public static function getWhere($form)
     {
-        $where_clause = array();
-        
         // Wskazanie parametrów do wyszukiwania w klauzuli WHERE
-        if($form->author) $where_clause['volume.author[~]'] = $form->author;
-        if($form->title) $where_clause['volume.title[~]'] = $form->title;
-        if($form->year) $where_clause['volume.year_publication'] = $form->year;
-//         if($form->onlyAvailable) $where_clause['volume.status'] = 'available';
+        $where_clause = "";
+        $where_params = [];
+        if($form->author || $form->title || $form->year) $where_clause .= "WHERE";
+
+        $count = 0;
+        if($form->author)
+        {
+            $where_clause .= " CONCAT(<first_name>, ' ', <last_name>) LIKE :likeAuthor";
+            $where_params[':likeAuthor'] = "%". $form->author ."%";
+            $count++;
+        }
         
-        return $where_clause;
+        if($form->title) 
+        {
+            if($count > 0) $where_clause .=" AND ";
+            $where_clause .= " title LIKE :likeTitle";
+            $where_params[':likeTitle'] = "%". $form->title ."%";
+            $count++;
+        }
+        
+        if($form->year) 
+        {
+            if($count > 0) $where_clause .=" AND ";
+            $where_clause .= " year_publication LIKE :likeYear";
+            $where_params[':likeYear'] = "%". $form->year ."%";
+        }
+
+        return [$where_clause, $where_params];
     }
     
     // Returns number of volumes
     public static function countVolumes($form)
     {
-        return App::getDB()->count('volume', self::getWhere($form));
+        $where = self::getWhere($form);
+        $where_clause = $where[0];
+        $where_params = $where[1];
+        
+        return App::getDB()->count('volume', [
+            '[>]author' => ['id_author' => 'id']
+        ], [
+            'volume.id'
+        ],
+            App::getDB()->raw($where_clause, $where_params)
+        );
     }
     
     // Return number of pages of current request
-    public static function countPages($form, $amount = 5)
+    public static function countPages($form)
     {
-        return ceil(self::countVolumes($form)/$amount);
+        return ceil(self::countVolumes($form)/$form->amount);
     }
     
     // Returns volumes 
@@ -68,7 +102,7 @@ class CatalogueDAO {
     }
     
     // Returns volumes with reservation status
-    public static function getVolumesExtra($form, $pageNumber = 1, $amount = 5)
+    public static function getVolumesExtra($form, $pageNumber = 1, $amount = 3)
     {
         $volumes = self::getVolumes($form, $pageNumber, $amount);
         $reservedVolumes = self::getActiveReservations();
